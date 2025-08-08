@@ -14,6 +14,7 @@ class Crud extends Conect{
         }
         return [$conditions, $realParams];
     }
+    // Builds SQL conditions and parameter array from input
     private function setFields(Array $fields){
         $stringFields = "";
         if(count($fields) > 0){
@@ -25,6 +26,7 @@ class Crud extends Conect{
         }
         $stringFields = rtrim($stringFields, ",");
         return $stringFields;
+    // Returns a comma-separated string of fields for SELECT
     }
     private function selectOperator(Array $params){
         $boolOr=false;
@@ -37,6 +39,7 @@ class Crud extends Conect{
         foreach($params as $key => $param){
             if($key=="or"){
                 $boolOr=true;
+    // Determines the logical operator order (AND/OR) for conditions
                 array_push($orderOperator,$key);
                 if($boolAnd){
                     $boolAnd=false;
@@ -92,6 +95,7 @@ class Crud extends Conect{
         $query = "select * from {$tableName}";
         return $this->executeQuery($this->getConection(), $query,array());
     }
+    // Executes a prepared SQL query with parameters and returns results
     private function getCondition(Array $params){
         $arrayOperators = $this->selectOperator($params);
         $operators = array_pop($arrayOperators);
@@ -101,10 +105,12 @@ class Crud extends Conect{
             $conditions = $this->conditions($arrayOperators[$i]);
             if($i!=$actually){
                 $condition .= " {$operators[$i]} ";
+    // Reads all rows from a table
                 $actually=$i;
             }
             $condition .= implode(" {$operators[$i]} ", $conditions[0]);
             $realParams = $realParams + $conditions[1];
+    // Builds the WHERE clause and parameters for complex queries
         }
         return [$condition, $conditions, $realParams];
     }
@@ -121,6 +127,7 @@ class Crud extends Conect{
         }
         $stringFields = $this->setFields($fields);
         $query = "select {$stringFields} from {$tableNames[0]}";
+    // Reads selected fields from a table with optional conditions
         if($condition!=null){
             $query .= $where.$condition;
         }elseif(count($arrayConditions[1][0]) > 0){
@@ -144,6 +151,7 @@ class Crud extends Conect{
     private function __construct(){
         $this->conect();
         // $data=$this->readAllTable("patient");
+    // Prints array results in HTML format
         // $this->iterateArray($data);
 
         $tables = array("patient");
@@ -153,6 +161,7 @@ class Crud extends Conect{
         );
         $data = $this->readSelectedFields($tables, $fields, $params);
         $this->iterateArray($data);
+    // Constructor: example usage of the CRUD class
         // $this->endConection();
     }
 }

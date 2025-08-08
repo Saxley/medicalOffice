@@ -24,7 +24,7 @@ class Conect{
     // The next line stores the database username and pw, which are retrieved from the Data object
     $user = $objectData -> getUsername();
     $password = $objectData -> getPassword();
-    try{ // Instantiates a new PDO connectiin object and assigns it via the setConection method
+    try{ // Instantiates a new PDO connection object and assigns it via the setConection method
       $conection = new PDO($dns, $user, $password);
       $conection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       $this->setConection($conection);
@@ -33,10 +33,10 @@ class Conect{
       die();
     }
   }
-  protected function getConection(){
+  protected function getConection(){ // it method returns the object into $conectionObject  
     return $this->conectionObject;
   }
-  protected function endConection(){
+  protected function endConection(){ // it method remove the object into $conectoinObject
     $this->conectionObject = null;
   }
 }
