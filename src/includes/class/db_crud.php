@@ -1,81 +1,52 @@
 <?php
+// Import the db_conect for use the PDO object
 require_once "db_conect.php";
-class Crud extends Conect{
-    private function conditions(Array $params){
+class Crud extends Conect{ // this class extends the Conect class to use its database connection.
+    // ____ Formatting methods ____
+    private function conditions(array $params):array{ // This method processes an array and returns two new arrays, formatted for use in a query
         $conditions = array();
         $realParams = array();
+        $keyCopy="";
+        $keyCopyKey="";
         foreach($params as $key => $param){
-            if($key != "or" && $key != "and"){
-                $conditions[] = $key . " = :" . $key;
+            if(!in_array($key, ['or', 'and'])){
+                 if (is_numeric((int)$key[-1]) && (int)$key[-1]> 0){
+                        $keyCopy = substr($key, 0, -1);
+                    }
+                if($keyCopy==substr($key,0,-1)){
+                    $keyCopyKey=$key;
+                    $key=$keyCopy;
+                }else{
+                    $keyCopyKey=$key;
+                }
+                $conditions[] = "{$key} = :{$keyCopyKey}";
                 $realParams[$key] = $param;
             }
         }
         return [$conditions, $realParams];
     }
-    // Builds SQL conditions and parameter array from input
-    private function setFields(Array $fields){
-        $stringFields = "";
-        if(count($fields) > 0){
-            foreach($fields as $field){
-                $stringFields .= $field . ",";
-            }
-        } else {
-            $stringFields = "*";
-        }
-        $stringFields = rtrim($stringFields, ",");
-        return $stringFields;
-    // Returns a comma-separated string of fields for SELECT
-    }
-    private function selectOperator(Array $params){
-        $boolOr=false;
-        $boolAnd=false;
-        $change = 0;
-        $changeCopy=$change;
+
+    private function selectOperator(array $params):array{
+
         $arrayToArray = array();
         $array = array();
         $orderOperator=array();
         foreach($params as $key => $param){
-            if($key=="or"){
-                $boolOr=true;
-    // Determines the logical operator order (AND/OR) for conditions
-                array_push($orderOperator,$key);
-                if($boolAnd){
-                    $boolAnd=false;
-                    $change++;
-                }
-            }
-            if($key=="and"){
-                $boolAnd=true;
-                array_push($orderOperator,$key);
-                if($boolOr){
-                    $boolOr=false;
-                    $change++;
-                }
-            }
-            if($boolAnd){
-                if($changeCopy!=$change){
-                    array_push($arrayToArray, $array);        
+            if($key === 'or' || $key === 'and'){
+                if(!empty($array)){
+                    $arrayToArray[]=$array;
                     $array=[];
-                    $changeCopy=$change;
                 }
-            }
-            if($boolOr){
-                if($changeCopy!=$change){
-                    array_push($arrayToArray, $array);        
-                    $array=[];
-                    $changeCopy=$change;
+                $orderOperator[]=$key;
+            }else{
+                if (is_numeric((int)$key[-1]) && (int)$key[-1]> 0){
+                    $key = substr($key, 0, -1);
                 }
-            }
-            if($boolOr && $key!="or" && $key!="and"){
-                $array[$key]=$param;
-            }
-            if($boolAnd && $key!="or" && $key!="and"){
                 $array[$key]=$param;
             }
         }
-        array_push($arrayToArray, $array);
-        if(count($orderOperator)==1){
-            array_push($arrayToArray, $array);
+        if(!empty($array)){
+            $arrayToArray[]=$array;
         }
         array_push($arrayToArray,$orderOperator);
         return $arrayToArray;
@@ -98,6 +69,7 @@ class Crud extends Conect{
         $operators = array_pop($arrayOperators);
         $realParams = array();
         $actually=0;
+        $condition="";
         for($i=0;$i<count($operators);$i++){
             $conditions = $this->conditions($arrayOperators[$i]);
             if($i!=$actually){
@@ -107,7 +79,7 @@ class Crud extends Conect{
             }
             $condition .= implode(" {$operators[$i]} ", $conditions[0]);
             $realParams = $realParams + $conditions[1];
-    // Builds the WHERE clause and parameters for complex queries
+            // Builds the WHERE clause and parameters for complex queries
         }
         return [$condition, $conditions, $realParams];
     }
@@ -122,9 +94,8 @@ class Crud extends Conect{
                 $condition .= $key."=:".$key;
             }
         }
-        $stringFields = $this->setFields($fields);
+        $stringFields = empty($fields) ? '*' : implode(',', $fields); // creates a comma-separated string from the $fields array, or a '*' if the array is empty
         $query = "select {$stringFields} from {$tableNames[0]}";
-    // Reads selected fields from a table with optional conditions
         if($condition!=null){
             $query .= $where.$condition;
         }elseif(count($arrayConditions[1][0]) > 0){
@@ -133,16 +104,21 @@ class Crud extends Conect{
         if(count($arrayConditions)<1){
             $arrayConditions[2]=$params;
         }
+        echo var_dump($arrayConditions[2]);
         return $this->executeQuery($this->getConection(), $query, $arrayConditions[2]);
     }
 
     public function iterateArray(Array $array){
         echo "__ <br>";
-        foreach($array as $arr){
-            foreach($arr as $key => $value){
-            echo $key." : ".$value."<br>";
-        }
-        echo "__ <br>";
+        if(empty($array)){
+            echo "No se encontrarón coincidencias";
+        }else{
+            foreach($array as $arr){
+                foreach($arr as $key => $value){
+                    echo $key." : ".$value."<br>";
+                }
+                echo "__ <br>";
+            }
         }
     }
     public function __construct(){
@@ -154,7 +130,11 @@ class Crud extends Conect{
         $tables = array("patient");
         $fields = array("name","last_name", "id","mobil");
         $params = array(
-            "last_name"=>"Perez"
+            "and"=>true,
+            "name"=>"Angela",
+            "last_name"=>"Carranza",
+            "or"=>true,
+            "last_name1"=>"Perez"
         );
         $data = $this->readSelectedFields($tables, $fields, $params);
         $this->iterateArray($data);

@@ -1,4 +1,5 @@
 <?
+//This class request credentials to log in to the database server. 
 class Data{
     private string $host = 'localhost';
     private string $dbName = 'medical_oppointment';
