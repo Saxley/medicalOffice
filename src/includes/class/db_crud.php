@@ -1,7 +1,5 @@
 <?php
-// import the db_conect class to get login credentials
 require_once "db_conect.php";
-
 class Crud extends Conect{
     private function conditions(Array $params){
         $conditions = array();
@@ -82,7 +80,7 @@ class Crud extends Conect{
         array_push($arrayToArray,$orderOperator);
         return $arrayToArray;
     }
-    private function executeQuery(object $conectionObject,string $query,Array $params){
+    public function executeQuery(object $conectionObject,string $query,Array $params){
         $stmt = $conectionObject->prepare($query);
         if(count($params)>0){
             $stmt->execute($params);
@@ -91,12 +89,11 @@ class Crud extends Conect{
         }
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    private function readAllTable(string $tableName){
+    public function readAllTable(string $tableName){
         $query = "select * from {$tableName}";
         return $this->executeQuery($this->getConection(), $query,array());
     }
-    // Executes a prepared SQL query with parameters and returns results
-    private function getCondition(Array $params){
+    public function getCondition(Array $params){
         $arrayOperators = $this->selectOperator($params);
         $operators = array_pop($arrayOperators);
         $realParams = array();
@@ -114,7 +111,7 @@ class Crud extends Conect{
         }
         return [$condition, $conditions, $realParams];
     }
-    private function readSelectedFields(Array $tableNames, Array $fields, Array $params){
+    public function readSelectedFields(Array $tableNames, Array $fields, Array $params){
         $condition = null;
         $where = " where ";
         $arrayConditions=array();
@@ -139,7 +136,7 @@ class Crud extends Conect{
         return $this->executeQuery($this->getConection(), $query, $arrayConditions[2]);
     }
 
-    private function iterateArray(Array $array){
+    public function iterateArray(Array $array){
         echo "__ <br>";
         foreach($array as $arr){
             foreach($arr as $key => $value){
@@ -148,7 +145,7 @@ class Crud extends Conect{
         echo "__ <br>";
         }
     }
-    private function __construct(){
+    public function __construct(){
         $this->conect();
         // $data=$this->readAllTable("patient");
     // Prints array results in HTML format
