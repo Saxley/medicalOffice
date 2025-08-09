@@ -1,0 +1,13 @@
+  insert into paciente (name, last_name, email, mobil) VALUES ('Juan', 'García', 'juan.garcia22@example.com', '5587656321'),
+('Juan', 'Pérez', 'juan.perez18@example.com', '5555855555'),
+('Luis', 'Lopez', 'luis.lopedz2@example.com', '5599887466'),
+('Carlos', 'López', 'carlos.lopez17@example.com', '5511233344'),
+('Carlos', 'Perez', 'carlos.pez2@example.com', '5587665544'),
+('María', 'Roez', 'maria.roez1@example.com', '5533291100'),
+('María', 'Perez', 'maria.pezz2@example.com', '5544056677'),
+('Luis', 'Rodiguezz', 'luis.rz1@example.com', '5598760432'),
+('Luis', 'Hernz', 'luis.hernz2@example.com', '5524981357'),
+('Laura', 'Perez', 'laura.zzzz1@example.com', '5513539246'),
+('Laura', 'Ramirez', 'laura.r2@example.com', '5586029753'),
+('Javier', 'perez', 'javier.z1@example.com', '5597731864'),
+('Carlos', 'Ramírez', 'javier.ramir5ez2@example.com', '5529763186');

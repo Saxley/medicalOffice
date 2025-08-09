@@ -7,64 +7,53 @@ class Crud extends Conect{ // this class extends the Conect class to use its dat
         $conditions = array();
         $realParams = array();
         $keyCopy="";
-        $keyCopyKey="";
         foreach($params as $key => $param){
             if(!in_array($key, ['or', 'and'])){
                  if (is_numeric((int)$key[-1]) && (int)$key[-1]> 0){
                         $keyCopy = substr($key, 0, -1);
+                    }else{
+                      $keyCopy=$key;
                     }
-                if($keyCopy==substr($key,0,-1)){
-                    $keyCopyKey=$key;
-                    $key=$keyCopy;
-                }else{
-                    $keyCopyKey=$key;
-                }
-                $conditions[] = "{$key} = :{$keyCopyKey}";
+                $conditions[] = "{$keyCopy} = :{$key}";
                 $realParams[$key] = $param;
             }
         }
         return [$conditions, $realParams];
     }
-
-    private function selectOperator(array $params):array{
-
+    private function selectOperator(array $params):array { // This method is responsible for deconstructing the input array.Iy returns the logical operators (AND/OR) and a collection of parameter arrays, each formatted as key-value pairs.
+      //arrays elements
         $arrayToArray = array();
         $array = array();
         $orderOperator=array();
+        //this foreach loop iterates through the received array
         foreach($params as $key => $param){
-            if($key === 'or' || $key === 'and'){
-                if(!empty($array)){
+            if($key === 'or' || $key === 'and'){ // This conditional checks if the $key is a logical operator.If true, it adds the operator to the $orderOperator array.
+                if(!empty($array)){ // This statement  verifies if the $array contains any data.If it does, the $array is added to the $arrayToArray array for the further processing.
                     $arrayToArray[]=$array;
-                    $array=[];
+                    $array=[]; // empties the $array for subsequent assignment of new values.
                 }
                 $orderOperator[]=$key;
-            }else{
-                if (is_numeric((int)$key[-1]) && (int)$key[-1]> 0){
-                    $key = substr($key, 0, -1);
-                }
+            }else{ // if the key doesn't correspond to a logical operator, it stores the key and its corresponding value in the $array.
                 $array[$key]=$param;
             }
         }
-        if(!empty($array)){
+        if(!empty($array)){// This statement  verifies if the $array contains any data.If it does, the $array is added to the $arrayToArray array for the further processing.
             $arrayToArray[]=$array;
         }
-        array_push($arrayToArray,$orderOperator);
+        array_push($arrayToArray,$orderOperator);// Appends the $orderOperator array to the $arrayToArray array using array_push(), so it can be included in the final response.
         return $arrayToArray;
     }
-    public function executeQuery(object $conectionObject,string $query,Array $params){
-        $stmt = $conectionObject->prepare($query);
-        if(count($params)>0){
-            $stmt->execute($params);
-        }else{
-            $stmt->execute();
-        }
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    public function readAllTable(string $tableName){
-        $query = "select * from {$tableName}";
-        return $this->executeQuery($this->getConection(), $query,array());
-    }
-    public function getCondition(Array $params){
+    
+    /* Constructs the WHERE clause and parameters for a dynamic SQL query.
+    *
+    *This method processes an array of parameters to build a full SQL condition string and separates the logical operators from the actual parameter values.
+    *@param array $params An associative array containing the query conditions and logical operators.
+    *@return array A three-element array containing:
+    * 1. The final WHERE condition string.
+    * 2. An array of conditions.
+    * 3. An associative array of clean parameters ready for biding.
+    */
+    public function getCondition(array $params):array{
         $arrayOperators = $this->selectOperator($params);
         $operators = array_pop($arrayOperators);
         $realParams = array();
@@ -74,21 +63,50 @@ class Crud extends Conect{ // this class extends the Conect class to use its dat
             $conditions = $this->conditions($arrayOperators[$i]);
             if($i!=$actually){
                 $condition .= " {$operators[$i]} ";
-    // Reads all rows from a table
                 $actually=$i;
             }
             $condition .= implode(" {$operators[$i]} ", $conditions[0]);
             $realParams = $realParams + $conditions[1];
-            // Builds the WHERE clause and parameters for complex queries
         }
         return [$condition, $conditions, $realParams];
     }
-    public function readSelectedFields(Array $tableNames, Array $fields, Array $params){
+    // iterate an array
+    public function iterateArray(array $array){ //this method iterates the received array and prints it content to the screen
+        echo "__ <br>";
+        if(empty($array)){
+            echo "No se encontrarón coincidencias";
+        }else{
+            foreach($array as $arr){
+                foreach($arr as $key => $value){
+                    echo $key." : ".$value."<br>";
+                }
+                echo "__ <br>";
+            }
+        }
+    }
+    // execute query
+    public function executeQuery(object $conectionObject,string $query,array $params):array{ // This method constructs a prepared statement from the query and binds the input parameters before executing it.
+        $stmt = $conectionObject->prepare($query);
+        if(count($params)>0){ // Binds the input parameters before execution, provided the parameter count is greater than zero.
+            $stmt->execute($params);
+        }else{
+            $stmt->execute();
+        }
+        // Returns an array containing the results of the query
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    //create query (CRUD)
+    public function readAllTable(string $tableName):array{// Constructs a basic SELECT query to retrieve all columns and rows from the table passed as a parameter.
+        $query = "select * from {$tableName}";
+        // Returns an array containing the results of the query
+        return $this->executeQuery($this->getConection(), $query,array());
+    }
+    public function readSelectedFields(array $tableNames, array $fields, array $params):array{ // This method generates a parameterzide SQL query by mapping user-specified fields and values to the query's structure.
         $condition = null;
-        $where = " where ";
+        $where = " where "; // This is the keyword used to filter records
         $arrayConditions=array();
         if(count($params)>1){
-            $arrayConditions = $this->getCondition($params);
+            $arrayConditions = $this->getCondition($params); // getCondition
         }else{
             foreach($params as $key=>$param){
                 $condition .= $key."=:".$key;
@@ -104,37 +122,24 @@ class Crud extends Conect{ // this class extends the Conect class to use its dat
         if(count($arrayConditions)<1){
             $arrayConditions[2]=$params;
         }
-        echo var_dump($arrayConditions[2]);
+        //echo $query."<hr>";
         return $this->executeQuery($this->getConection(), $query, $arrayConditions[2]);
     }
 
-    public function iterateArray(Array $array){
-        echo "__ <br>";
-        if(empty($array)){
-            echo "No se encontrarón coincidencias";
-        }else{
-            foreach($array as $arr){
-                foreach($arr as $key => $value){
-                    echo $key." : ".$value."<br>";
-                }
-                echo "__ <br>";
-            }
-        }
-    }
     public function __construct(){
         $this->conect();
         // $data=$this->readAllTable("patient");
     // Prints array results in HTML format
         // $this->iterateArray($data);
 
-        $tables = array("patient");
+        $tables = array("paciente");
         $fields = array("name","last_name", "id","mobil");
         $params = array(
-            "and"=>true,
-            "name"=>"Angela",
-            "last_name"=>"Carranza",
             "or"=>true,
-            "last_name1"=>"Perez"
+            "last_name"=>"Garcia",
+            "last_name1"=>"Perez",
+            "and"=>true,
+            "name"=>"Ana"
         );
         $data = $this->readSelectedFields($tables, $fields, $params);
         $this->iterateArray($data);

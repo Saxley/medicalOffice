@@ -1,10 +1,10 @@
 <?
 //This class request credentials to log in to the database server. 
 class Data{
-    private string $host = 'localhost';
-    private string $dbName = 'medical_oppointment';
+    private string $host = '127.0.0.1';
+    private string $dbName = 'db_agenda_consulta';
     private string $username = 'root';
-    private string $password = '4M0pr0gr4m4r$';
+    private string $password = 'hola';
     
     public function getHost(){
       return $this->host;
