@@ -1,32 +1,27 @@
 <?php
-// import the db_conect class to get login credentials
 require_once "db_conect.php";
 
 class Crud extends Conect{
-    private function conditions(Array $params){
-        $conditions = array();
-        $realParams = array();
-        foreach($params as $key => $param){
-            if($key != "or" && $key != "and"){
-                $conditions[] = $key . " = :" . $key;
-                $realParams[$key] = $param;
-            }
-        }
-        return [$conditions, $realParams];
-    }
-    // Builds SQL conditions and parameter array from input
-    private function setFields(Array $fields){
+    // This method extracts data in separate parts
+    private function setFields(Array $fields){ // This method joins the array elements with commas and returns a string
         $stringFields = "";
         if(count($fields) > 0){
-            foreach($fields as $field){
-                $stringFields .= $field . ",";
-            }
+            $stringFields .= implode(",", $fields);
         } else {
             $stringFields = "*";
         }
-        $stringFields = rtrim($stringFields, ",");
         return $stringFields;
-    // Returns a comma-separated string of fields for SELECT
+    }
+    private function conditions(Array $params) {
+      $conditions = array();
+      $realParams = array();
+      foreach ($params as $key => $param) {
+          if ($key != "or" && $key != "and") {
+              $conditions[] = $key . " = :" . $key;
+              $realParams[$key] = $param;
+          }
+      }
+      return [$conditions, $realParams];
     }
     private function selectOperator(Array $params){
         $boolOr=false;
@@ -39,7 +34,6 @@ class Crud extends Conect{
         foreach($params as $key => $param){
             if($key=="or"){
                 $boolOr=true;
-    // Determines the logical operator order (AND/OR) for conditions
                 array_push($orderOperator,$key);
                 if($boolAnd){
                     $boolAnd=false;
@@ -82,20 +76,6 @@ class Crud extends Conect{
         array_push($arrayToArray,$orderOperator);
         return $arrayToArray;
     }
-    private function executeQuery(object $conectionObject,string $query,Array $params){
-        $stmt = $conectionObject->prepare($query);
-        if(count($params)>0){
-            $stmt->execute($params);
-        }else{
-            $stmt->execute();
-        }
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    private function readAllTable(string $tableName){
-        $query = "select * from {$tableName}";
-        return $this->executeQuery($this->getConection(), $query,array());
-    }
-    // Executes a prepared SQL query with parameters and returns results
     private function getCondition(Array $params){
         $arrayOperators = $this->selectOperator($params);
         $operators = array_pop($arrayOperators);
@@ -105,14 +85,27 @@ class Crud extends Conect{
             $conditions = $this->conditions($arrayOperators[$i]);
             if($i!=$actually){
                 $condition .= " {$operators[$i]} ";
-    // Reads all rows from a table
                 $actually=$i;
             }
             $condition .= implode(" {$operators[$i]} ", $conditions[0]);
             $realParams = $realParams + $conditions[1];
-    // Builds the WHERE clause and parameters for complex queries
         }
         return [$condition, $conditions, $realParams];
+    }
+    //Method for print on screen
+    private function iterateArray(Array $array){
+        echo "__ <br>";
+        foreach($array as $arr){
+            foreach($arr as $key => $value){
+            echo $key." : ".$value."<br>";
+        }
+        echo "__ <br>";
+        }
+    }
+    //Method's CRUD
+    private function readAllTable(string $tableName){
+        $query = "select * from {$tableName}";
+        return $this->executeQuery($this->getConection(), $query,array());
     }
     private function readSelectedFields(Array $tableNames, Array $fields, Array $params){
         $condition = null;
@@ -127,7 +120,6 @@ class Crud extends Conect{
         }
         $stringFields = $this->setFields($fields);
         $query = "select {$stringFields} from {$tableNames[0]}";
-    // Reads selected fields from a table with optional conditions
         if($condition!=null){
             $query .= $where.$condition;
         }elseif(count($arrayConditions[1][0]) > 0){
@@ -138,22 +130,19 @@ class Crud extends Conect{
         }
         return $this->executeQuery($this->getConection(), $query, $arrayConditions[2]);
     }
-
-    private function iterateArray(Array $array){
-        echo "__ <br>";
-        foreach($array as $arr){
-            foreach($arr as $key => $value){
-            echo $key." : ".$value."<br>";
+    // ____ Method for execute querys ____
+    private function executeQuery(object $conectionObject,string $query,Array $params){
+        $stmt = $conectionObject->prepare($query);
+        if(count($params)>0){
+            $stmt->execute($params);
+        }else{
+            $stmt->execute();
         }
-        echo "__ <br>";
-        }
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    // ____ Method construct ____
     private function __construct(){
         $this->conect();
-        // $data=$this->readAllTable("patient");
-    // Prints array results in HTML format
-        // $this->iterateArray($data);
-
         $tables = array("patient");
         $fields = array("name","last_name", "id","mobil");
         $params = array(
@@ -161,7 +150,6 @@ class Crud extends Conect{
         );
         $data = $this->readSelectedFields($tables, $fields, $params);
         $this->iterateArray($data);
-    // Constructor: example usage of the CRUD class
         // $this->endConection();
     }
 }
