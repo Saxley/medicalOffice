@@ -67,7 +67,7 @@ class Crud extends Conect{ // this class extends the Conect class to use its dat
                 $condition .= " {$operators[$i]} ";
                 if(count($arrayOperators)!=count($operators)){
                     $i++;
-                }
+                } // if $operators has more elements $i add one
                 $actually=$i+1;
             }
             if($countElements>1){
@@ -152,10 +152,8 @@ class Crud extends Conect{ // this class extends the Conect class to use its dat
         $tables = array("patient");
         $fields = array("name","last_name", "id","mobil");
         $params = array(
-            "or"=>"or",
-            "name1"=>"Carlos",
-            "name"=>"Angela",
             "and"=>"and",
+            "name"=>"Angela",
             "or1"=>"or",
             "last_name2"=>"Carranza",
             "last_name1"=>"Perez",
