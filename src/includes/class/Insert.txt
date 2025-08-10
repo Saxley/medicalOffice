@@ -1,4 +1,4 @@
-  insert into paciente (name, last_name, email, mobil) VALUES ('Juan', 'García', 'juan.garcia22@example.com', '5587656321'),
+  insert into patient (name, last_name, email, mobil) VALUES ('Juan', 'García', 'juan.garcia22@example.com', '5587656321'),
 ('Juan', 'Pérez', 'juan.perez18@example.com', '5555855555'),
 ('Luis', 'Lopez', 'luis.lopedz2@example.com', '5599887466'),
 ('Carlos', 'López', 'carlos.lopez17@example.com', '5511233344'),
