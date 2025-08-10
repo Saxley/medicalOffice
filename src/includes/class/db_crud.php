@@ -54,20 +54,22 @@ class Crud extends Conect{ // this class extends the Conect class to use its dat
     * 3. An associative array of clean parameters ready for biding.
     */
     public function getCondition(array $params):array{
-        $arrayOperators = $this->selectOperator($params);
-        $operators = array_pop($arrayOperators);
-        $realParams = array();
+        $arrayOperators = $this->selectOperator($params);// Separate the logical operators(AND/OR) from the condition parameters.
+        $operators = array_pop($arrayOperators);// Extracts the array of operators
+        $realParams = array(); // Initialize a nrw array than store the real parameters for binds.
         $actually=0;
-        $condition="";
-        for($i=0;$i<count($operators);$i++){
-            $conditions = $this->conditions($arrayOperators[$i]);
+        $condition=""; // Condition is a variable that store the query.
+        for($i=0;$i<count($operators);$i++){ // Iterate the $operators array for create the query.
+            $conditions = $this->conditions($arrayOperators[$i]); // Received the conditions for the bind 
             if($i!=$actually){
                 $condition .= " {$operators[$i]} ";
-                $actually=$i;
+                $actually=$i; 
             }
-            $condition .= implode(" {$operators[$i]} ", $conditions[0]);
-            $realParams = $realParams + $conditions[1];
+            $condition .= implode(" {$operators[$i]} ", $conditions[0]); // add to string the conditions where
+            $realParams = $realParams + $conditions[1]; // add to $realParams array the $conditions[1] array.
         }
+        //returns a array with the condition, an $conditions array and $realParams array
+        //returns a array with the condition, an $conditions array and $realParams array
         return [$condition, $conditions, $realParams];
     }
     // iterate an array
